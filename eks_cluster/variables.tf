@@ -15,6 +15,12 @@ variable "eks_vpc_cidr" {
   default     = "10.10.0.0/16"
 }
 
+variable "vpn_cidr" {
+  type        = string
+  description = "The CIDR block for a client VPN. Any connections from a VPN client will get assigned an IP from this CIDR."
+  default     = "10.12.0.0/16"
+}
+
 
 variable "region" {
   type        = string
@@ -25,6 +31,12 @@ variable "region" {
 variable "provision_test_instances" {
   type        = bool
   description = "create one test instance per subnet, useful for connectivity checking."
+  default     = false
+}
+
+variable "provision_client_vpn_connection" {
+  type        = bool
+  description = "create a private VPN connection, useful to be able to access private subnets from a laptop"
   default     = false
 }
 

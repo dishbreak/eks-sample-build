@@ -7,3 +7,9 @@ variable "vpc_id" {
   type        = string
   description = "the VPC to launch the instances in"
 }
+
+output "security_group_id" {
+  type        = string
+  description = "the security group ID for the test instances group"
+  value       = aws_security_group.inst.id
+}

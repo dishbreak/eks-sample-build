@@ -6,4 +6,5 @@ number_of_availability_zones = 3
 # useful if the cluster needs a new name between setup and teardown
 # cluster_name = "eks-auto-1"
 
-eks_cluster_admin_users = ["arn:aws:iam::825573321580:user/vishal"]
+eks_cluster_admin_users         = ["arn:aws:iam::825573321580:user/vishal"]
+provision_client_vpn_connection = true
