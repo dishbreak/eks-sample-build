@@ -1,12 +1,6 @@
 # argocd install
 
-On a blank EKS cluster, start by creating the `argocd` namespace.
-
-```
-kubectl create namespace argocd
-```
-
-Then, use Kustomize via the `-k` flag on `kubectl` to apply the Kustomization that will install the latest version of ArgoCD on the cluster.
+On a blank EKS cluster, use Kustomize via the `-k` flag on `kubectl` to apply the Kustomization that will install the latest version of ArgoCD on the cluster.
 Note that the `--server-side` flag is needed to apply the Kustomization with [server-side apply](https://kubernetes.io/docs/reference/using-api/server-side-apply/). 
 This is required because the resources will exceed the length limitations for client-side apply. 
 
