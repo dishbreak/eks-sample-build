@@ -6,5 +6,7 @@ namespace: argocd
 resources:
 - ./namespace.yaml
 - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-- ./ui-service.yaml
-- ./apps/podinfo.yaml
+- ./ingressclass.yaml
+
+# - ./ui-service.yaml
+# - ./apps/podinfo.yaml
