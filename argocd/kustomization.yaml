@@ -8,5 +8,4 @@ resources:
 - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 - ./ingressclass.yaml
 - ./ui-service.yaml
-# - ./apps/podinfo.yaml
-- ./apps/game-2048.yaml
+- ./ui-ingress.yaml
