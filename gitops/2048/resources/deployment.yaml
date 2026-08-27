@@ -6,7 +6,7 @@ metadata:
   name: deployment-2048
   namespace: game-2048
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: app-2048
@@ -15,6 +15,9 @@ spec:
       labels:
         app.kubernetes.io/name: app-2048
     spec:
+      syncPolicy:
+        automated:
+          enabled: true
       containers:
       - image: public.ecr.aws/l6m2t8p7/docker-2048:latest
         name: docker-2048
