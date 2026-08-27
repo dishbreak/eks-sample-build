@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: game-2048
+  namespace: argocd
+spec:
+  source:
+    repoURL: https://github.com/dishbreak/eks-sample-build.git
+    path: gitops/2048
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: game-2048
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+  project: ""
