@@ -84,8 +84,15 @@ func (i items) Create (w http.ResponseWriter, r *http.Request) {
         http.Error(w, "unable to parse input", http.StatusBadRequest)
         return
     }
+    created, err := i.itemsSvc.Create(incoming)
+    if err != nil {
+        http.Error(w, "unable to create item", http.StatusBadRequest)
+        log.Printf("unable to create item: %s", err)
+        return
+    }
 
-    
+    enc := json.NewEncoder(w)
+    enc.Encode(created)
 }
 
 func NewItemController(itemsSvc models.ItemService) http.Handler {
@@ -98,6 +105,7 @@ func NewItemController(itemsSvc models.ItemService) http.Handler {
         r.Use(ic.ItemCtx)
         r.Get("/", ic.Get)
         r.Put("/", ic.Update)
+        r.Delete("/", ic.Delete)
     })
     return r
 }
