@@ -77,7 +77,7 @@ func (i items) Update(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func (i items) Create (w http.ResponseWriter, r *http.Request) {
+func (i items) Create(w http.ResponseWriter, r *http.Request) {
     incoming := models.Item{}
     dec := json.NewDecoder(r.Body)
     if err := dec.Decode(&incoming); err != nil {

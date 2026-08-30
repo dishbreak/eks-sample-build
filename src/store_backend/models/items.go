@@ -30,7 +30,7 @@ func NewItemService(db *sql.DB) ItemService {
 }
 
 func (i *ItemServiceImpl) GetAll() ([]Item, error) {
-	var result []Item
+	result := make([]Item, 0)
 	rows, err := i.DB.Query("SELECT id, title, description from store_items;")
 	if err != nil {
 		return result, fmt.Errorf("failed to retrieve items from server: %w", err)
@@ -62,8 +62,12 @@ func (i *ItemServiceImpl) Create(it Item) (Item, error) {
 }
 
 // Delete implements [ItemService].
-func (*ItemServiceImpl) Delete(i Item) error {
-	panic("unimplemented")
+func (i *ItemServiceImpl) Delete(it Item) error {
+	_, err := i.DB.Exec("delete from store_items where id = $1", it.Id)
+	if err != nil {
+		return fmt.Errorf("failed to remove item: %s", err)
+	}
+	return nil
 }
 
 // GetById implements [ItemService].
