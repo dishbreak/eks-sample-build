@@ -13,25 +13,28 @@ import (
 )
 
 func main() {
-    db, err := models.Open(models.DBConfigFromEnv())
-    if err != nil {
-        panic(err)
-    }
-    defer db.Close()
+	db, err := models.Open(models.DBConfigFromEnv())
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 
-    itemsSvc := models.NewItemService(db)
-    
-    r := chi.NewRouter()
+	itemsSvc := models.NewItemService(db)
+	imagesSvc := models.NewImageService(db)
 
-    r.Use(middleware.Timeout(60 * time.Second))
+	r := chi.NewRouter()
 
-    r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.WriteHeader(http.StatusOK)
-        fmt.Fprint(w, "Ok!")
-    })
+	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(middleware.RedirectSlashes)
 
-    r.Mount("/items/", controllers.NewItemController(itemsSvc))
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "Ok!")
+	})
 
-    log.Print("Listening on Port 8080!")
-    http.ListenAndServe(":8080", r)
+	r.Mount("/items/", controllers.NewItemController(itemsSvc))
+	r.Mount("/images/", controllers.NewImageController(imagesSvc))
+
+	log.Print("Listening on Port 8080!")
+	http.ListenAndServe(":8080", r)
 }
