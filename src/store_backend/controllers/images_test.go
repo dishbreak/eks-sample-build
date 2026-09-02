@@ -330,14 +330,95 @@ func TestUpload(t *testing.T) {
 	})
 
 	t.Run("will reject an upload of a non-image file", func(t *testing.T) {
+		dir := t.TempDir()
 
+		c := controllers.NewImageController(
+			NewMockImageService(t),
+			controllers.WithTimeProvider(staticTimeProvider),
+			controllers.WithImageUploadDir(dir),
+		)
+
+		rr := httptest.NewRecorder()
+
+		req := prepareForm(
+			"/item/7",
+			fileUpload{
+				Path:        "files/not_an_img.txt",
+				ContentType: "text/plain",
+			},
+		)
+
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Result().StatusCode)
 	})
 
 	t.Run("will detect and reject an upload of a fake jpg", func(t *testing.T) {
+		dir := t.TempDir()
 
+		c := controllers.NewImageController(
+			NewMockImageService(t),
+			controllers.WithTimeProvider(staticTimeProvider),
+			controllers.WithImageUploadDir(dir),
+		)
+
+		rr := httptest.NewRecorder()
+
+		req := prepareForm(
+			"/item/7",
+			fileUpload{
+				Path:        "files/not_an_img.jpg",
+				ContentType: "images/jpeg",
+			},
+		)
+
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Result().StatusCode)
 	})
 
 	t.Run("will reject a mismatch between file extension and content type", func(t *testing.T) {
+		dir := t.TempDir()
 
+		c := controllers.NewImageController(
+			NewMockImageService(t),
+			controllers.WithTimeProvider(staticTimeProvider),
+			controllers.WithImageUploadDir(dir),
+		)
+
+		rr := httptest.NewRecorder()
+
+		req := prepareForm(
+			"/item/7",
+			fileUpload{
+				Path:        "files/not_an_img.txt",
+				ContentType: "images/jpeg",
+			},
+		)
+
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusBadRequest, rr.Result().StatusCode)
+	})
+
+	t.Run("will reject arbitrary data", func(t *testing.T) {
+		dir := t.TempDir()
+
+		c := controllers.NewImageController(
+			NewMockImageService(t),
+			controllers.WithTimeProvider(staticTimeProvider),
+			controllers.WithImageUploadDir(dir),
+		)
+
+		rr := httptest.NewRecorder()
+
+		formBody := "helloThere"
+		req, err := http.NewRequest("POST", "/item/7", strings.NewReader(formBody))
+		assert.Nil(t, err)
+		req.Header.Set("Content-Type", "text/plain")
+
+		c.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusUnsupportedMediaType, rr.Result().StatusCode)
 	})
 }
