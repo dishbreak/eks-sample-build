@@ -1,4 +1,4 @@
-package controllers
+package items
 
 import (
 	"context"
@@ -7,15 +7,18 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/dishbreak/sample-store-backend/controllers"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/go-chi/chi/v5"
 )
 
 type items struct {
-	itemsSvc models.ItemService
+	itemsSvc       models.ItemService
+	readOnlyAccess controllers.Middleware
+	adminAccess    controllers.Middleware
 }
 
-func (i items) GetById(w http.ResponseWriter, r *http.Request) {
+func (i *items) GetById(w http.ResponseWriter, r *http.Request) {
 	item, ok := ItemFromCtx(r.Context())
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -26,7 +29,7 @@ func (i items) GetById(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(item)
 }
 
-func (i items) Get(w http.ResponseWriter, r *http.Request) {
+func (i *items) Get(w http.ResponseWriter, r *http.Request) {
 	result, err := i.itemsSvc.GetAll()
 	if err != nil {
 		http.Error(w, "failed to get items", http.StatusInternalServerError)
@@ -38,7 +41,7 @@ func (i items) Get(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(result)
 }
 
-func (i items) Delete(w http.ResponseWriter, r *http.Request) {
+func (i *items) Delete(w http.ResponseWriter, r *http.Request) {
 	item, ok := ItemFromCtx(r.Context())
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -53,7 +56,7 @@ func (i items) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (i items) Update(w http.ResponseWriter, r *http.Request) {
+func (i *items) Update(w http.ResponseWriter, r *http.Request) {
 	item, ok := ItemFromCtx(r.Context())
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -77,7 +80,7 @@ func (i items) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (i items) Create(w http.ResponseWriter, r *http.Request) {
+func (i *items) Create(w http.ResponseWriter, r *http.Request) {
 	incoming := models.Item{}
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&incoming); err != nil {
@@ -95,22 +98,44 @@ func (i items) Create(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(created)
 }
 
-func NewItemController(itemsSvc models.ItemService) http.Handler {
-	ic := items{itemsSvc: itemsSvc}
+type Option func(i *items)
+
+func WithReadOnlyMiddleware(m controllers.Middleware) Option {
+	return func(i *items) {
+		i.readOnlyAccess = m
+	}
+}
+
+func WithAdminMiddleware(m controllers.Middleware) Option {
+	return func(i *items) {
+		i.adminAccess = m
+	}
+}
+
+func NewController(itemsSvc models.ItemService, opts ...Option) http.Handler {
+	ic := &items{
+		itemsSvc:       itemsSvc,
+		readOnlyAccess: controllers.PassThru,
+		adminAccess:    controllers.PassThru,
+	}
+
+	for _, opt := range opts {
+		opt(ic)
+	}
 
 	r := chi.NewRouter()
-	r.Get("/", ic.Get)
-	r.Post("/", ic.Create)
+	r.With(ic.readOnlyAccess).Get("/", ic.Get)
+	r.With(ic.adminAccess).Post("/", ic.Create)
 	r.Route("/{itemId}", func(r chi.Router) {
 		r.Use(ic.ItemCtx)
-		r.Get("/", ic.Get)
-		r.Put("/", ic.Update)
-		r.Delete("/", ic.Delete)
+		r.With(ic.readOnlyAccess).Get("/", ic.Get)
+		r.With(ic.adminAccess).Put("/", ic.Update)
+		r.With(ic.adminAccess).Delete("/", ic.Delete)
 	})
 	return r
 }
 
-func (i items) ItemCtx(next http.Handler) http.Handler {
+func (i *items) ItemCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var itemId int
 		itemParam := chi.URLParam(r, "itemId")

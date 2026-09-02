@@ -1,4 +1,4 @@
-package controllers_test
+package images_test
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dishbreak/sample-store-backend/controllers"
+	"github.com/dishbreak/sample-store-backend/controllers/images"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -83,7 +83,7 @@ func NewMockImageService(t *testing.T, images ...models.Image) models.ImageServi
 
 func TestGetById(t *testing.T) {
 	t.Run("404 on nonexistent image", func(t *testing.T) {
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t),
 		)
 
@@ -99,7 +99,7 @@ func TestGetById(t *testing.T) {
 	})
 
 	t.Run("return valid image", func(t *testing.T) {
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t, models.Image{ItemId: 45, Path: "some/fake/path"}),
 		)
 
@@ -123,7 +123,7 @@ func TestGetById(t *testing.T) {
 }
 
 func TestGetByItemId(t *testing.T) {
-	images := []models.Image{
+	imageRecords := []models.Image{
 		{ItemId: 23, Path: "some/fake/path/1"},
 		{ItemId: 42, Path: "some/fake/path/2"},
 		{ItemId: 23, Path: "some/fake/path/3"},
@@ -137,8 +137,8 @@ func TestGetByItemId(t *testing.T) {
 	}
 
 	t.Run("non-existent itemId returns empty slice", func(t *testing.T) {
-		c := controllers.NewImageController(
-			NewMockImageService(t, images...),
+		c := images.NewController(
+			NewMockImageService(t, imageRecords...),
 		)
 
 		rr := httptest.NewRecorder()
@@ -152,16 +152,16 @@ func TestGetByItemId(t *testing.T) {
 
 		dec := json.NewDecoder(rr.Body)
 
-		images := make([]models.Image, 0)
-		dec.Decode(&images)
+		results := make([]models.Image, 0)
+		dec.Decode(&results)
 
-		assert.NotNil(t, images)
-		assert.Empty(t, images)
+		assert.NotNil(t, results)
+		assert.Empty(t, results)
 	})
 
 	t.Run("existent itemId returns only the images associated with the item", func(t *testing.T) {
-		c := controllers.NewImageController(
-			NewMockImageService(t, images...),
+		c := images.NewController(
+			NewMockImageService(t, imageRecords...),
 		)
 
 		rr := httptest.NewRecorder()
@@ -194,7 +194,7 @@ func TestGetByItemId(t *testing.T) {
 var EmbedTestFiles embed.FS
 
 func TestDelete(t *testing.T) {
-	c := controllers.NewImageController(
+	c := images.NewController(
 		NewMockImageService(t, models.Image{ItemId: 77, Path: "some/faker/path"}),
 	)
 
@@ -291,10 +291,10 @@ func TestUpload(t *testing.T) {
 	t.Run("will handle a normal image upload", func(t *testing.T) {
 		dir := t.TempDir()
 
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t),
-			controllers.WithTimeProvider(staticTimeProvider),
-			controllers.WithImageUploadDir(dir),
+			images.WithTimeProvider(staticTimeProvider),
+			images.WithImageUploadDir(dir),
 		)
 
 		rr := httptest.NewRecorder()
@@ -332,10 +332,10 @@ func TestUpload(t *testing.T) {
 	t.Run("will reject an upload of a non-image file", func(t *testing.T) {
 		dir := t.TempDir()
 
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t),
-			controllers.WithTimeProvider(staticTimeProvider),
-			controllers.WithImageUploadDir(dir),
+			images.WithTimeProvider(staticTimeProvider),
+			images.WithImageUploadDir(dir),
 		)
 
 		rr := httptest.NewRecorder()
@@ -356,10 +356,10 @@ func TestUpload(t *testing.T) {
 	t.Run("will detect and reject an upload of a fake jpg", func(t *testing.T) {
 		dir := t.TempDir()
 
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t),
-			controllers.WithTimeProvider(staticTimeProvider),
-			controllers.WithImageUploadDir(dir),
+			images.WithTimeProvider(staticTimeProvider),
+			images.WithImageUploadDir(dir),
 		)
 
 		rr := httptest.NewRecorder()
@@ -380,10 +380,10 @@ func TestUpload(t *testing.T) {
 	t.Run("will reject a mismatch between file extension and content type", func(t *testing.T) {
 		dir := t.TempDir()
 
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t),
-			controllers.WithTimeProvider(staticTimeProvider),
-			controllers.WithImageUploadDir(dir),
+			images.WithTimeProvider(staticTimeProvider),
+			images.WithImageUploadDir(dir),
 		)
 
 		rr := httptest.NewRecorder()
@@ -404,10 +404,10 @@ func TestUpload(t *testing.T) {
 	t.Run("will reject arbitrary data", func(t *testing.T) {
 		dir := t.TempDir()
 
-		c := controllers.NewImageController(
+		c := images.NewController(
 			NewMockImageService(t),
-			controllers.WithTimeProvider(staticTimeProvider),
-			controllers.WithImageUploadDir(dir),
+			images.WithTimeProvider(staticTimeProvider),
+			images.WithImageUploadDir(dir),
 		)
 
 		rr := httptest.NewRecorder()

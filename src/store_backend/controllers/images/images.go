@@ -1,4 +1,4 @@
-package controllers
+package images
 
 import (
 	"bytes"
@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dishbreak/sample-store-backend/controllers"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/go-chi/chi/v5"
 )
@@ -30,40 +31,40 @@ type images struct {
 	adminAccess    func(http.Handler) http.Handler
 }
 
-type ImagesOption func(i *images)
+type Option func(i *images)
 
-func WithImageUploadDir(path string) ImagesOption {
+func WithImageUploadDir(path string) Option {
 	return func(i *images) {
 		i.imagePath = path
 	}
 }
 
-func WithMaxUploadBytes(maxUpload int64) ImagesOption {
+func WithMaxUploadBytes(maxUpload int64) Option {
 	return func(i *images) {
 		i.maxUploadSize = maxUpload
 	}
 }
 
-func WithImagesService(imagesSvc models.ImageService) ImagesOption {
+func WithImagesService(imagesSvc models.ImageService) Option {
 	return func(i *images) {
 		i.imagesSvc = imagesSvc
 	}
 }
 
 // useful for testing to provide deterministic results
-func WithTimeProvider(cb func() time.Time) ImagesOption {
+func WithTimeProvider(cb func() time.Time) Option {
 	return func(i *images) {
 		i.timeProvider = cb
 	}
 }
 
-func WithReadOnlyMiddleware(m Middleware) ImagesOption {
+func WithReadOnlyMiddleware(m controllers.Middleware) Option {
 	return func(i *images) {
 		i.readOnlyAccess = m
 	}
 }
 
-func WithAdminMiddleware(m Middleware) ImagesOption {
+func WithAdminMiddleware(m controllers.Middleware) Option {
 	return func(i *images) {
 		i.adminAccess = m
 	}
@@ -241,14 +242,14 @@ func (i *images) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewImageController(imagesSvc models.ImageService, opts ...ImagesOption) http.Handler {
+func NewController(imagesSvc models.ImageService, opts ...Option) http.Handler {
 	ic := &images{
 		imagesSvc:      imagesSvc,
 		imagePath:      "./assets",
 		maxUploadSize:  100 << 20,
 		timeProvider:   time.Now,
-		adminAccess:    PassThru,
-		readOnlyAccess: PassThru,
+		adminAccess:    controllers.PassThru,
+		readOnlyAccess: controllers.PassThru,
 	}
 
 	for _, opt := range opts {
@@ -258,13 +259,13 @@ func NewImageController(imagesSvc models.ImageService, opts ...ImagesOption) htt
 	r := chi.NewRouter()
 
 	r.Group(func(r chi.Router) {
-		r.Use(IntegerPathParam("itemId"))
+		r.Use(controllers.IntegerPathParam("itemId"))
 		r.With(ic.readOnlyAccess).Get("/item/{itemId}", ic.GetAllForItemId)
 		r.With(ic.adminAccess).Post("/item/{itemId}", ic.Upload)
 	})
 
 	r.Group(func(r chi.Router) {
-		r.Use(IntegerPathParam("imageId"))
+		r.Use(controllers.IntegerPathParam("imageId"))
 		r.With(ic.readOnlyAccess).Get("/image/{imageId}", ic.Get)
 		r.With(ic.adminAccess).Delete("/image/{imageId}", ic.Delete)
 	})

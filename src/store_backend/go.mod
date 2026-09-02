@@ -7,6 +7,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/pressly/goose/v3 v3.27.3
 	github.com/stretchr/testify v1.12.1
+	go-simpler.org/env v0.12.0
 )
 
 require (

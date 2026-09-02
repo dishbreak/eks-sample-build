@@ -6,14 +6,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dishbreak/sample-store-backend/controllers"
+	"github.com/dishbreak/sample-store-backend/config"
+	"github.com/dishbreak/sample-store-backend/controllers/images"
+	"github.com/dishbreak/sample-store-backend/controllers/items"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
-	db, err := models.Open(models.DBConfigFromEnv())
+
+	cfg := config.Must()
+
+	db, err := models.Open(cfg.Database)
 	if err != nil {
 		panic(err)
 	}
@@ -32,8 +37,8 @@ func main() {
 		fmt.Fprint(w, "Ok!")
 	})
 
-	r.Mount("/items/", controllers.NewItemController(itemsSvc))
-	r.Mount("/images/", controllers.NewImageController(imagesSvc))
+	r.Mount("/items/", items.NewController(itemsSvc))
+	r.Mount("/images/", images.NewController(imagesSvc))
 
 	log.Print("Listening on Port 8080!")
 	http.ListenAndServe(":8080", r)

@@ -3,13 +3,16 @@ package main
 import (
 	"log"
 
+	"github.com/dishbreak/sample-store-backend/config"
 	"github.com/dishbreak/sample-store-backend/migrations"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/pressly/goose/v3"
 )
 
 func main() {
-	db, err := models.Open(models.DBConfigFromEnv())
+	cfg := config.Must()
+
+	db, err := models.Open(cfg.Database)
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := goose.Up(db, "migrations"); err != nil {
+	if err := goose.Up(db, "sql"); err != nil {
 		panic(err)
 	}
 

@@ -27,22 +27,6 @@ func IntegerPathParam(key string) Middleware {
 	}
 }
 
-func ItemIdFromContext(ctx context.Context) int {
-	val, ok := ctx.Value("itemId").(int)
-	if !ok {
-		panic("expected itemId in context")
-	}
-	return val
-}
-
-func ImageIdFromContext(ctx context.Context) int {
-	val, ok := ctx.Value("imageId").(int)
-	if !ok {
-		panic("expected imageId in context")
-	}
-	return val
-}
-
 func PassThru(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
