@@ -54,11 +54,11 @@ func (i *ItemServiceImpl) GetAll() ([]Item, error) {
 // Create implements [ItemService].
 func (i *ItemServiceImpl) Create(it Item) (Item, error) {
 	row := i.DB.QueryRow("insert into store_items (id, title, description) VALUES (DEFAULT, $1, $2) RETURNING id, title, description;", it.Title, it.Description)
-    result := Item{}
-    if err := row.Scan(&result.Id, &result.Title, &result.Description); err != nil {
-        return result, fmt.Errorf("failed to insert item: %w", err )
-    }
-    return result, nil
+	result := Item{}
+	if err := row.Scan(&result.Id, &result.Title, &result.Description); err != nil {
+		return result, fmt.Errorf("failed to insert item: %w", err)
+	}
+	return result, nil
 }
 
 // Delete implements [ItemService].
@@ -74,11 +74,11 @@ func (i *ItemServiceImpl) Delete(it Item) error {
 func (i *ItemServiceImpl) GetById(id int) (Item, error) {
 	result := Item{Id: i.DB.Stats().Idle}
 
-    row := i.DB.QueryRow("select title, description from store_items where id = $1", id)
-    if err := row.Scan(&result.Title, &result.Description); err != nil {
-        return result, fmt.Errorf("failed to find item by id %d: %w", id, err)
-    }
-    return result, nil
+	row := i.DB.QueryRow("select title, description from store_items where id = $1", id)
+	if err := row.Scan(&result.Title, &result.Description); err != nil {
+		return result, fmt.Errorf("failed to find item by id %d: %w", id, err)
+	}
+	return result, nil
 }
 
 // Update implements [ItemService].
@@ -86,8 +86,8 @@ func (i *ItemServiceImpl) Update(it Item) error {
 	_, err := i.DB.Exec(`update store_items
     set title = $2, description = $3
     where id = $1`, it.Id, it.Title, it.Description)
-    if err != nil {
-        return fmt.Errorf("failed to update item with id %d: %w", it.Id, err)
-    }
-    return nil
+	if err != nil {
+		return fmt.Errorf("failed to update item with id %d: %w", it.Id, err)
+	}
+	return nil
 }
