@@ -22,10 +22,12 @@ import (
 )
 
 type images struct {
-	imagesSvc     models.ImageService
-	imagePath     string
-	maxUploadSize int64
-	timeProvider  func() time.Time
+	imagesSvc      models.ImageService
+	imagePath      string
+	maxUploadSize  int64
+	timeProvider   func() time.Time
+	readOnlyAccess func(http.Handler) http.Handler
+	adminAccess    func(http.Handler) http.Handler
 }
 
 type ImagesOption func(i *images)
@@ -52,6 +54,18 @@ func WithImagesService(imagesSvc models.ImageService) ImagesOption {
 func WithTimeProvider(cb func() time.Time) ImagesOption {
 	return func(i *images) {
 		i.timeProvider = cb
+	}
+}
+
+func WithReadOnlyMiddleware(m Middleware) ImagesOption {
+	return func(i *images) {
+		i.readOnlyAccess = m
+	}
+}
+
+func WithAdminMiddleware(m Middleware) ImagesOption {
+	return func(i *images) {
+		i.adminAccess = m
 	}
 }
 
@@ -229,10 +243,12 @@ func (i *images) Delete(w http.ResponseWriter, r *http.Request) {
 
 func NewImageController(imagesSvc models.ImageService, opts ...ImagesOption) http.Handler {
 	ic := &images{
-		imagesSvc:     imagesSvc,
-		imagePath:     "./assets",
-		maxUploadSize: 100 << 20,
-		timeProvider:  time.Now,
+		imagesSvc:      imagesSvc,
+		imagePath:      "./assets",
+		maxUploadSize:  100 << 20,
+		timeProvider:   time.Now,
+		adminAccess:    PassThru,
+		readOnlyAccess: PassThru,
 	}
 
 	for _, opt := range opts {
@@ -243,14 +259,14 @@ func NewImageController(imagesSvc models.ImageService, opts ...ImagesOption) htt
 
 	r.Group(func(r chi.Router) {
 		r.Use(IntegerPathParam("itemId"))
-		r.Get("/item/{itemId}", ic.GetAllForItemId)
-		r.Post("/item/{itemId}", ic.Upload)
+		r.With(ic.readOnlyAccess).Get("/item/{itemId}", ic.GetAllForItemId)
+		r.With(ic.adminAccess).Post("/item/{itemId}", ic.Upload)
 	})
 
 	r.Group(func(r chi.Router) {
 		r.Use(IntegerPathParam("imageId"))
-		r.Get("/image/{imageId}", ic.Get)
-		r.Delete("/image/{imageId}", ic.Delete)
+		r.With(ic.readOnlyAccess).Get("/image/{imageId}", ic.Get)
+		r.With(ic.adminAccess).Delete("/image/{imageId}", ic.Delete)
 	})
 
 	return r

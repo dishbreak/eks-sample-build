@@ -8,7 +8,9 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func IntegerPathParam(key string) func(http.Handler) http.Handler {
+type Middleware func(http.Handler) http.Handler
+
+func IntegerPathParam(key string) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			itemParam := chi.URLParam(r, key)
@@ -39,4 +41,10 @@ func ImageIdFromContext(ctx context.Context) int {
 		panic("expected imageId in context")
 	}
 	return val
+}
+
+func PassThru(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+	})
 }
