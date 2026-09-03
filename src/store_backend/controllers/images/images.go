@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dishbreak/sample-store-backend/controllers"
+	myMiddleware "github.com/dishbreak/sample-store-backend/middleware"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/go-chi/chi/v5"
 )
@@ -27,8 +27,9 @@ type images struct {
 	imagePath      string
 	maxUploadSize  int64
 	timeProvider   func() time.Time
-	readOnlyAccess func(http.Handler) http.Handler
-	adminAccess    func(http.Handler) http.Handler
+	oidcVerifier   myMiddleware.Middleware
+	readOnlyAccess myMiddleware.Middleware
+	adminAccess    myMiddleware.Middleware
 }
 
 type Option func(i *images)
@@ -58,15 +59,21 @@ func WithTimeProvider(cb func() time.Time) Option {
 	}
 }
 
-func WithReadOnlyMiddleware(m controllers.Middleware) Option {
+func WithReadOnlyMiddleware(m myMiddleware.Middleware) Option {
 	return func(i *images) {
 		i.readOnlyAccess = m
 	}
 }
 
-func WithAdminMiddleware(m controllers.Middleware) Option {
+func WithAdminMiddleware(m myMiddleware.Middleware) Option {
 	return func(i *images) {
 		i.adminAccess = m
+	}
+}
+
+func WithOIDCVerifier(m myMiddleware.Middleware) Option {
+	return func(i *images) {
+		i.oidcVerifier = m
 	}
 }
 
@@ -248,8 +255,8 @@ func NewController(imagesSvc models.ImageService, opts ...Option) http.Handler {
 		imagePath:      "./assets",
 		maxUploadSize:  100 << 20,
 		timeProvider:   time.Now,
-		adminAccess:    controllers.PassThru,
-		readOnlyAccess: controllers.PassThru,
+		adminAccess:    myMiddleware.PassThru,
+		readOnlyAccess: myMiddleware.PassThru,
 	}
 
 	for _, opt := range opts {
@@ -257,15 +264,16 @@ func NewController(imagesSvc models.ImageService, opts ...Option) http.Handler {
 	}
 
 	r := chi.NewRouter()
+	r.Use(ic.oidcVerifier)
 
 	r.Group(func(r chi.Router) {
-		r.Use(controllers.IntegerPathParam("itemId"))
+		r.Use(myMiddleware.IntegerPathParam("itemId"))
 		r.With(ic.readOnlyAccess).Get("/item/{itemId}", ic.GetAllForItemId)
 		r.With(ic.adminAccess).Post("/item/{itemId}", ic.Upload)
 	})
 
 	r.Group(func(r chi.Router) {
-		r.Use(controllers.IntegerPathParam("imageId"))
+		r.Use(myMiddleware.IntegerPathParam("imageId"))
 		r.With(ic.readOnlyAccess).Get("/image/{imageId}", ic.Get)
 		r.With(ic.adminAccess).Delete("/image/{imageId}", ic.Delete)
 	})

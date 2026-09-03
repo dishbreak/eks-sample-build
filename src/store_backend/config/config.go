@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Database DatabaseConfig `env:"DATABASE_"`
+	OAuth2   OAuth2Config   `env:"OAUTH_"`
 }
 
 type DatabaseConfig struct {
@@ -24,6 +25,11 @@ func (d DatabaseConfig) ToDSN() string {
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		d.Host, d.Username, d.Password, d.DbName, d.Port, d.SslMode,
 	)
+}
+
+type OAuth2Config struct {
+	IssuerURL        string `env:"ISSUER_URL,required"`
+	ExpectedAudience string `env:"EXPECTED_AUDIENCE" default:"store_backend"`
 }
 
 func Must() (cfg Config) {

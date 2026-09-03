@@ -1,4 +1,4 @@
-package controllers
+package middleware
 
 import (
 	"context"
@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
-
-type Middleware func(http.Handler) http.Handler
 
 func IntegerPathParam(key string) Middleware {
 	return func(next http.Handler) http.Handler {
@@ -25,10 +23,4 @@ func IntegerPathParam(key string) Middleware {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-
-func PassThru(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
 }

@@ -11,8 +11,8 @@ type Item struct {
 	Description string `json:"description"`
 }
 
-type ItemServiceImpl struct {
-	DB *sql.DB
+type itemServiceImpl struct {
+	db *sql.DB
 }
 
 type ItemService interface {
@@ -24,14 +24,14 @@ type ItemService interface {
 }
 
 func NewItemService(db *sql.DB) ItemService {
-	return &ItemServiceImpl{
-		DB: db,
+	return &itemServiceImpl{
+		db: db,
 	}
 }
 
-func (i *ItemServiceImpl) GetAll() ([]Item, error) {
+func (i *itemServiceImpl) GetAll() ([]Item, error) {
 	result := make([]Item, 0)
-	rows, err := i.DB.Query("SELECT id, title, description from store_items;")
+	rows, err := i.db.Query("SELECT id, title, description from store_items;")
 	if err != nil {
 		return result, fmt.Errorf("failed to retrieve items from server: %w", err)
 	}
@@ -52,8 +52,8 @@ func (i *ItemServiceImpl) GetAll() ([]Item, error) {
 }
 
 // Create implements [ItemService].
-func (i *ItemServiceImpl) Create(it Item) (Item, error) {
-	row := i.DB.QueryRow("insert into store_items (id, title, description) VALUES (DEFAULT, $1, $2) RETURNING id, title, description;", it.Title, it.Description)
+func (i *itemServiceImpl) Create(it Item) (Item, error) {
+	row := i.db.QueryRow("insert into store_items (id, title, description) VALUES (DEFAULT, $1, $2) RETURNING id, title, description;", it.Title, it.Description)
 	result := Item{}
 	if err := row.Scan(&result.Id, &result.Title, &result.Description); err != nil {
 		return result, fmt.Errorf("failed to insert item: %w", err)
@@ -62,8 +62,8 @@ func (i *ItemServiceImpl) Create(it Item) (Item, error) {
 }
 
 // Delete implements [ItemService].
-func (i *ItemServiceImpl) Delete(it Item) error {
-	_, err := i.DB.Exec("delete from store_items where id = $1", it.Id)
+func (i *itemServiceImpl) Delete(it Item) error {
+	_, err := i.db.Exec("delete from store_items where id = $1", it.Id)
 	if err != nil {
 		return fmt.Errorf("failed to remove item: %s", err)
 	}
@@ -71,10 +71,10 @@ func (i *ItemServiceImpl) Delete(it Item) error {
 }
 
 // GetById implements [ItemService].
-func (i *ItemServiceImpl) GetById(id int) (Item, error) {
-	result := Item{Id: i.DB.Stats().Idle}
+func (i *itemServiceImpl) GetById(id int) (Item, error) {
+	result := Item{Id: i.db.Stats().Idle}
 
-	row := i.DB.QueryRow("select title, description from store_items where id = $1", id)
+	row := i.db.QueryRow("select title, description from store_items where id = $1", id)
 	if err := row.Scan(&result.Title, &result.Description); err != nil {
 		return result, fmt.Errorf("failed to find item by id %d: %w", id, err)
 	}
@@ -82,8 +82,8 @@ func (i *ItemServiceImpl) GetById(id int) (Item, error) {
 }
 
 // Update implements [ItemService].
-func (i *ItemServiceImpl) Update(it Item) error {
-	_, err := i.DB.Exec(`update store_items
+func (i *itemServiceImpl) Update(it Item) error {
+	_, err := i.db.Exec(`update store_items
     set title = $2, description = $3
     where id = $1`, it.Id, it.Title, it.Description)
 	if err != nil {

@@ -7,15 +7,16 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dishbreak/sample-store-backend/controllers"
+	myMiddleware "github.com/dishbreak/sample-store-backend/middleware"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/go-chi/chi/v5"
 )
 
 type items struct {
 	itemsSvc       models.ItemService
-	readOnlyAccess controllers.Middleware
-	adminAccess    controllers.Middleware
+	oidcVerifier   myMiddleware.Middleware
+	readOnlyAccess myMiddleware.Middleware
+	adminAccess    myMiddleware.Middleware
 }
 
 func (i *items) GetById(w http.ResponseWriter, r *http.Request) {
@@ -100,23 +101,31 @@ func (i *items) Create(w http.ResponseWriter, r *http.Request) {
 
 type Option func(i *items)
 
-func WithReadOnlyMiddleware(m controllers.Middleware) Option {
+func WithReadOnlyMiddleware(m myMiddleware.Middleware) Option {
 	return func(i *items) {
 		i.readOnlyAccess = m
 	}
 }
 
-func WithAdminMiddleware(m controllers.Middleware) Option {
+func WithAdminMiddleware(m myMiddleware.Middleware) Option {
 	return func(i *items) {
 		i.adminAccess = m
 	}
 }
 
+func WithOIDCVerifier(m myMiddleware.Middleware) Option {
+	return func(i *items) {
+		i.oidcVerifier = m
+	}
+}
+
 func NewController(itemsSvc models.ItemService, opts ...Option) http.Handler {
 	ic := &items{
-		itemsSvc:       itemsSvc,
-		readOnlyAccess: controllers.PassThru,
-		adminAccess:    controllers.PassThru,
+		itemsSvc: itemsSvc,
+		// using passThru middlewares helps with unit testing
+		readOnlyAccess: myMiddleware.PassThru,
+		adminAccess:    myMiddleware.PassThru,
+		oidcVerifier:   myMiddleware.PassThru,
 	}
 
 	for _, opt := range opts {
@@ -124,6 +133,7 @@ func NewController(itemsSvc models.ItemService, opts ...Option) http.Handler {
 	}
 
 	r := chi.NewRouter()
+	r.Use(ic.oidcVerifier)
 	r.With(ic.readOnlyAccess).Get("/", ic.Get)
 	r.With(ic.adminAccess).Post("/", ic.Create)
 	r.Route("/{itemId}", func(r chi.Router) {

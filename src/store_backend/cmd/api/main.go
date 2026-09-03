@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/dishbreak/sample-store-backend/config"
 	"github.com/dishbreak/sample-store-backend/controllers/images"
 	"github.com/dishbreak/sample-store-backend/controllers/items"
+	myMiddleware "github.com/dishbreak/sample-store-backend/middleware"
 	"github.com/dishbreak/sample-store-backend/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,6 +20,15 @@ import (
 func main() {
 
 	cfg := config.Must()
+
+	provider, err := oidc.NewProvider(context.Background(), cfg.OAuth2.IssuerURL)
+	if err != nil {
+		panic(err)
+	}
+
+	verifier := provider.Verifier(&oidc.Config{
+		ClientID: cfg.OAuth2.ExpectedAudience,
+	})
 
 	db, err := models.Open(cfg.Database)
 	if err != nil {
@@ -37,8 +49,20 @@ func main() {
 		fmt.Fprint(w, "Ok!")
 	})
 
-	r.Mount("/items/", items.NewController(itemsSvc))
-	r.Mount("/images/", images.NewController(imagesSvc))
+	oidcMiddleware := myMiddleware.OIDCVerification(verifier)
+	adminMiddleWare := myMiddleware.RequireScope("store.admin")
+	readOnlyMiddleware := myMiddleware.RequireScope("store.read")
+
+	r.Mount("/items/", items.NewController(
+		itemsSvc,
+		items.WithOIDCVerifier(oidcMiddleware),
+		items.WithAdminMiddleware(adminMiddleWare),
+		items.WithReadOnlyMiddleware(readOnlyMiddleware)))
+	r.Mount("/images/", images.NewController(
+		imagesSvc,
+		images.WithOIDCVerifier(oidcMiddleware),
+		images.WithAdminMiddleware(adminMiddleWare),
+		images.WithReadOnlyMiddleware(readOnlyMiddleware)))
 
 	log.Print("Listening on Port 8080!")
 	http.ListenAndServe(":8080", r)
