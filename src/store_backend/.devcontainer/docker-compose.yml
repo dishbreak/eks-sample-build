@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     env_file:
        # Ensure that the variables in .env match the same variables in devcontainer.json
-       - .env
+       - api.env
 
     volumes:
       - ../..:/workspaces:cached
@@ -30,6 +30,19 @@ services:
       - postgres-data:/var/lib/postgresql
     env_file:
       # Ensure that the variables in .env match the same variables in devcontainer.json
-      - .env
+      - db.env
     # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
+  
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    command:
+    - start-dev
+    - --http-port
+    - "7080"
+    ports:
+    - 7080:7080
+    
