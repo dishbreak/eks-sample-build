@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Database DatabaseConfig `env:"DATABASE_"`
 	OAuth2   OAuth2Config   `env:"OAUTH_"`
+	Assets   AssetsConfig   `env:"ASSETS_"`
 }
 
 type DatabaseConfig struct {
@@ -28,8 +29,13 @@ func (d DatabaseConfig) ToDSN() string {
 }
 
 type OAuth2Config struct {
+	AuthEnabled      bool   `env:"ENABLED" default:"true"`
 	IssuerURL        string `env:"ISSUER_URL,required"`
 	ExpectedAudience string `env:"EXPECTED_AUDIENCE" default:"store_backend"`
+}
+
+type AssetsConfig struct {
+	UploadDir string `env:"UPLOAD_DIR" default:"./uploads"`
 }
 
 func Must() (cfg Config) {
