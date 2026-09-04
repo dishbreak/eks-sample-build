@@ -29,12 +29,14 @@ func OIDCVerification(verifier *oidc.IDTokenVerifier) Middleware {
 			parts := strings.Fields(authHeader)
 
 			if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-				http.Error(w, "missing or invalid bearer token", http.StatusUnauthorized)
+				w.Header().Set("WWW-Authenticate", "Bearer error=\"invalid_request\"")
+				http.Error(w, "missing or malformed bearer token", http.StatusBadRequest)
 				return
 			}
 
 			token, err := verifier.Verify(r.Context(), parts[1])
 			if err != nil {
+				w.Header().Set("WWW-Authenticate", "Bearer error=\"invalid_token\"")
 				http.Error(w, "token failed verification", http.StatusUnauthorized)
 				return
 			}
@@ -42,7 +44,8 @@ func OIDCVerification(verifier *oidc.IDTokenVerifier) Middleware {
 			var claims Claims
 
 			if err := token.Claims(&claims); err != nil {
-				http.Error(w, "invalid claims", http.StatusUnauthorized)
+				w.Header().Set("WWW-Authenticate", "Bearer error=\"invalid_token\"")
+				http.Error(w, "invalid or malformed claims", http.StatusUnauthorized)
 				return
 			}
 
@@ -66,7 +69,10 @@ func RequireScope(requiredScope string) Middleware {
 
 			scopes := strings.Fields(claims.Scope)
 			if !contains(scopes, requiredScope) {
-				http.Error(w, fmt.Sprintf("lacking scope %s", requiredScope), http.StatusUnauthorized)
+				w.Header().Set(
+					"WWW-Authenticate",
+					fmt.Sprintf(`Bearer error="insufficient_scope", scope="%s"`, requiredScope))
+				http.Error(w, fmt.Sprintf("lacking scope %s", requiredScope), http.StatusForbidden)
 				return
 			}
 
