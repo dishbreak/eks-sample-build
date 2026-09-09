@@ -7,6 +7,8 @@ metadata:
     app: argogrpc
   annotations:
     alb.ingress.kubernetes.io/backend-protocol-version: GRPC
+    alb.ingress.kubernetes.io/healthcheck-path: /grpc.health.v1.Health/Check
+    alb.ingress.kubernetes.io/success-codes: "0"
   namespace: argocd
 spec:
   selector:
