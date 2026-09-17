@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'src/store-backend/**'
+      - '.github/workflows/backend-pr.yaml'
 jobs:
   lint:
     uses: ./.github/workflows/backend-golangci-lint.yaml
