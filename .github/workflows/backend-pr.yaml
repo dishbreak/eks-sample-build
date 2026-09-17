@@ -11,3 +11,5 @@ on:
 jobs:
   lint:
     uses: ./.github/workflows/backend-golangci-lint.yaml
+  test:
+    uses: ./.github/workflows/backend-golang-test.yaml

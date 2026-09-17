@@ -1,0 +1,16 @@
+---
+name: "Backend -- Go Test"
+on:
+  workflow_call: {}
+jobs:
+  lint:
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: 'src/store_backend/go.mod'
+      - name: Run Unit Tests
+        run: go test ./...
+        working-directory: src/backend_store
