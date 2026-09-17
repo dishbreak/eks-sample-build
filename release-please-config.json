@@ -1,7 +1,8 @@
 {
     "packages": {
         "src/store_backend": {
-            "release-type": "go"
+            "release-type": "go",
+            "component": "store_backend"
         }
     }
 }
