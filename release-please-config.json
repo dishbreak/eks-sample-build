@@ -1,0 +1,7 @@
+{
+    "packages": {
+        "src/store_backend": {
+            "release-type": "go"
+        }
+    }
+}

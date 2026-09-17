@@ -1,0 +1,16 @@
+name: "Release Please"
+on:
+  push:
+    branches:
+      - main
+jobs:
+  release:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: run release-please
+        uses: googleapis/release-please@v5
