@@ -1,6 +1,10 @@
 name: Store Backend PR checks
 on:
   pull_request:
+    types:
+      - opened
+      - closed
+      - synchronize
     paths:
       - 'src/store-backend/**'
       - '.github/workflows/backend-pr.yaml'
