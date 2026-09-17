@@ -1,0 +1,8 @@
+name: Store Backend PR checks
+on:
+  pull_request:
+    paths:
+      - 'src/store-backend/**'
+jobs:
+  lint:
+    uses: ./.github/workflows/backend-golangci-lint.yaml

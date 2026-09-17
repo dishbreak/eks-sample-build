@@ -257,6 +257,7 @@ func NewController(imagesSvc models.ImageService, opts ...Option) http.Handler {
 		timeProvider:   time.Now,
 		adminAccess:    myMiddleware.PassThru,
 		readOnlyAccess: myMiddleware.PassThru,
+		oidcVerifier:   myMiddleware.PassThru,
 	}
 
 	for _, opt := range opts {
