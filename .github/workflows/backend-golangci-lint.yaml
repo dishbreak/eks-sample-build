@@ -11,7 +11,7 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: 'src/store_backend/go.mod'
-      - uses: golangci-lint/golangci-lint-action@v9
+      - uses: golangci/golangci-lint-action@v9
         with:
           working-directory: src/store_backend
           version: v2.13.2
