@@ -13,4 +13,4 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: run release-please
-        uses: googleapis/release-please@v5
+        uses: googleapis/release-please-action@v5
