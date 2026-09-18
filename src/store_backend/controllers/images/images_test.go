@@ -75,7 +75,8 @@ func NewMockImageService(t *testing.T, images ...models.Image) models.ImageServi
 	}
 
 	for _, img := range images {
-		m.Create(img.ItemId, img)
+		_, err := m.Create(img.ItemId, img)
+        assert.Nil(t, err, "failed to create mock image record")
 	}
 
 	return m
@@ -114,7 +115,7 @@ func TestGetById(t *testing.T) {
 
 		dec := json.NewDecoder(rr.Body)
 		img := models.Image{}
-		dec.Decode(&img)
+		_ = dec.Decode(&img)
 
 		assert.Equal(t, 1, img.Id)
 		assert.Equal(t, 45, img.ItemId)
@@ -153,8 +154,8 @@ func TestGetByItemId(t *testing.T) {
 		dec := json.NewDecoder(rr.Body)
 
 		results := make([]models.Image, 0)
-		dec.Decode(&results)
-
+		err = dec.Decode(&results)
+        assert.Nil(t, err)
 		assert.NotNil(t, results)
 		assert.Empty(t, results)
 	})
@@ -174,7 +175,7 @@ func TestGetByItemId(t *testing.T) {
 
 		dec := json.NewDecoder(rr.Body)
 		images := make([]models.Image, 0)
-		dec.Decode(&images)
+		_ = dec.Decode(&images)
 		//no guarantee on the order of the results, so sort by id
 		slices.SortStableFunc(images, func(a, b models.Image) int {
 			return a.Id - b.Id
@@ -208,6 +209,7 @@ func TestDelete(t *testing.T) {
 
 	// a subsequent get of the image should return 404
 	req, err = http.NewRequest("GET", "/image/1", nil)
+    assert.Nil(t, err, "failed to create test request")
 	rr = httptest.NewRecorder()
 
 	c.ServeHTTP(rr, req)
@@ -233,7 +235,7 @@ func prepareForm(url string, filePaths ...fileUpload) *http.Request {
 			if err != nil {
 				panic(err)
 			}
-			defer fd.Close()
+			defer func() {_ = fd.Close()}()
 
 			stat, err := fd.Stat()
 			if err != nil {

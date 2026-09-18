@@ -27,7 +27,10 @@ func (i *items) GetById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	enc.Encode(item)
+	if err := enc.Encode(item); err != nil {
+        log.Printf("failed to encode message body: %s", err)
+        http.Error(w, "failed to encode message body", http.StatusInternalServerError)
+    }
 }
 
 func (i *items) Get(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +42,11 @@ func (i *items) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	enc.Encode(result)
+	if err := enc.Encode(result); err != nil {
+        http.Error(w, "unable to create item", http.StatusBadRequest)
+		log.Printf("unable to create item: %s", err)
+		return
+    }
 }
 
 func (i *items) Delete(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +103,11 @@ func (i *items) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	enc.Encode(created)
+	if err := enc.Encode(created); err != nil {
+        http.Error(w, "unable to create item", http.StatusBadRequest)
+		log.Printf("unable to create item: %s", err)
+		return
+    }
 }
 
 type Option func(i *items)
@@ -167,7 +178,7 @@ func (i *items) ItemCtx(next http.Handler) http.Handler {
 }
 
 func CtxWithItem(ctx context.Context, item models.Item) context.Context {
-	return context.WithValue(ctx, "item", item)
+	return context.WithValue(ctx, myMiddleware.ContextKey("item"), item)
 }
 
 func ItemFromCtx(ctx context.Context) (models.Item, bool) {
