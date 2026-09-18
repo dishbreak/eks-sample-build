@@ -11,6 +11,8 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: 'src/store_backend/go.mod'
+          cache-dependency-path: 'src/store_backend/go.mod'
+
       - uses: golangci/golangci-lint-action@v9
         with:
           working-directory: src/store_backend
