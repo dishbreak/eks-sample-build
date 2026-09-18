@@ -86,7 +86,10 @@ func (i *images) GetAllForItemId(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	enc.Encode(results)
+	if err := enc.Encode(results); err != nil {
+        log.Printf("failed to write message body: %s", err)
+        http.Error(w, "failed to write message body", http.StatusInternalServerError)
+    }
 }
 
 func (i *images) Get(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +102,10 @@ func (i *images) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	enc.Encode(image)
+	if err := enc.Encode(image); err != nil {
+        log.Printf("failed to write message body: %s", err)
+        http.Error(w, "failed to write message body", http.StatusInternalServerError)
+    }
 }
 
 func (i *images) Upload(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +137,12 @@ func (i *images) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.Body = http.MaxBytesReader(w, r.Body, i.maxUploadSize)
-	defer r.Body.Close()
+	defer func() {
+        if err := r.Body.Close(); err != nil {
+            log.Printf("failed to close incoming message body: %s", err)
+        }
+    }()
+
 	multiPartReader := multipart.NewReader(r.Body, boundary)
 
 	for {
@@ -156,7 +167,11 @@ func (i *images) Upload(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			image := models.Image{Path: path, ItemId: itemId}
-			i.imagesSvc.Create(itemId, image)
+			if _, err := i.imagesSvc.Create(itemId, image); err != nil {
+                log.Printf("failed to create image record: %s", err)
+                http.Error(w, "failed to create image record", http.StatusInternalServerError)
+                return
+            }
 		}
 	}
 }
@@ -165,7 +180,11 @@ func (i *images) savePart(p *multipart.Part) (string, error) {
 	ext := strings.ToLower(
 		filepath.Ext(filepath.Base(p.FileName())),
 	)
+    
 	r, contentType, err := detectContentType(p)
+    if err != nil {
+        return "", fmt.Errorf("failed to detect content type: %w", err)
+    }
 
 	if !validateContentAndExt(ext, contentType) {
 		return "", errors.New("unsupported file upload")
@@ -190,7 +209,10 @@ func (i *images) savePart(p *multipart.Part) (string, error) {
 	removeTemp := true
 
 	defer func() {
-		tempFile.Close()
+		if err := tempFile.Close(); err != nil {
+            log.Printf("failed to close temp file: %s", err)
+        }
+
 
 		if removeTemp {
 			_ = os.Remove(tempPath)

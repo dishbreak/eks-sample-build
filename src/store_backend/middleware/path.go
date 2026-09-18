@@ -19,7 +19,7 @@ func IntegerPathParam(key string) Middleware {
 			} else {
 				result = parsed
 			}
-			ctx := context.WithValue(r.Context(), key, result)
+			ctx := context.WithValue(r.Context(), ContextKey(key), result)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

@@ -2,7 +2,7 @@ package middleware
 
 import "net/http"
 
-type contextKey string
+type ContextKey string
 
 type Middleware func(http.Handler) http.Handler
 

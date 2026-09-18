@@ -1,9 +1,9 @@
 ---
-name: "Backend -- GolangCI lint"
+name: "Backend -- Go Test"
 on:
   workflow_call: {}
 jobs:
-  lint:
+  test:
     runs-on: ["ubuntu-latest"]
     steps:
       - uses: actions/checkout@v7
@@ -11,7 +11,7 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version-file: 'src/store_backend/go.mod'
-      - uses: golangci-lint/golangci-lint-action@v9
-        with:
-          working-directory: src/store_backend
-          version: v2.13.2
+          cache-dependency-path: 'src/store_backend/go.mod'
+      - name: Run Unit Tests
+        run: go test ./...
+        working-directory: src/store_backend

@@ -9,7 +9,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 )
 
-const claimsKey contextKey = "claims"
+const claimsKey ContextKey = "claims"
 
 type Claims struct {
 	Subject         string `json:"sub"`
