@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/dishbreak/sample-store-backend/config"
@@ -16,7 +17,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer func() {
+        if err := db.Close(); err != nil {
+            panic(fmt.Errorf("failed to close db connection: %w", err))
+        }
+    }()
 
 	goose.SetBaseFS(migrations.EmbeddedMigrations)
 

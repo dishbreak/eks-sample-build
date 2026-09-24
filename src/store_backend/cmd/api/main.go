@@ -44,7 +44,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer func() {
+        if err := db.Close(); err != nil {
+            log.Printf("failed to close db: %s", err)
+        }
+    }()
 
 	itemsSvc := models.NewItemService(db)
 	imagesSvc := models.NewImageService(db)
@@ -56,7 +60,9 @@ func main() {
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "Ok!")
+		if _, err := fmt.Fprint(w, "Ok!"); err != nil {
+            http.Error(w, "failed to write response", http.StatusInternalServerError)
+        }
 	})
 
 	adminMiddleWare := myMiddleware.RequireScope("store.admin")
@@ -75,7 +81,10 @@ func main() {
 		images.WithReadOnlyMiddleware(readOnlyMiddleware)))
 
 	log.Print("Listening on Port 8080!")
-	http.ListenAndServe(":8080", r)
+
+	if err := http.ListenAndServe(":8080", r); err != nil {
+        panic(err)
+    }
 }
 
 func mustPrepareDir(assetCfg config.AssetsConfig) http.FileSystem {
