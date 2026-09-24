@@ -16,6 +16,6 @@ jobs:
     secrets: inherit
     with:
       push: true
-      tag: "store_backend:snapshot-${{github.event.pull_request.number}}-${{github.event.pull_request.head.sha}}"
+      tag: "dishbreak/store_backend:snapshot-${{github.event.pull_request.number}}-${{github.event.pull_request.head.sha}}"
   test:
     uses: ./.github/workflows/backend-golang-test.yaml
