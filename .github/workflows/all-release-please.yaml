@@ -12,5 +12,13 @@ jobs:
     runs-on: ["ubuntu-latest"]
     steps:
       - uses: actions/checkout@v7
+      - name: generate Github token
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{vars.RELEASE_BOT_CLIENT_ID}}
+          private-key: ${{secrets.RELEASE_BOT_PRIVATE_KEY}}
       - name: run release-please
         uses: googleapis/release-please-action@v5
+        with:
+          token: ${{steps.generate-token.outputs.token}}

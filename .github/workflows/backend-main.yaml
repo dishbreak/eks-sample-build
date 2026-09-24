@@ -19,7 +19,7 @@ jobs:
   container-image:
     needs: [lint, test, parse-version]
     uses: ./.github/workflows/backend-image.yaml
+    secrets: inherit
     with:
       push: true
       tag: "dishbreak/store_backend:${{needs.parse-version.outputs.version}}"
-    
