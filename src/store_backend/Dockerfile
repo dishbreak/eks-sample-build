@@ -13,6 +13,8 @@ COPY ./ ./
 RUN ./scripts/build.sh
 
 FROM debian:13-slim as base
+LABEL org.opencontainers.image.source="https://github.com/dishbreak/eks-sample-build"
+LABEL org.opencontainers.image.description="The backend API for the store application hosted in eks-sample-build."
 RUN mkdir /home/app
 RUN useradd app
 RUN chown -R app:app /home/app
