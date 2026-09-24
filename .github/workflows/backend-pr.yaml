@@ -6,19 +6,7 @@ on:
 jobs:
   lint:
     uses: ./.github/workflows/backend-golangci-lint.yaml
-  get-snapshot-tag:
-    runs-on: ["ubuntu-latest"]
-    outputs:
-      tag-value: ${{ steps.git-describe.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v7
-      - name: Describe current commit
-        id: git-describe
-        run: |
-          describe_tag=$(git describe --tags | grep store_backend | cut -d- -f2)
-          echo "tag=$describe_tag" >> $GITHUB_OUTPUT
   container-image:
-    needs: ["get-snapshot-tag"]
     uses: ./.github/workflows/backend-image.yaml
     with:
-      tag: "store_backend:snapshot-${{needs.get-snapshot-tag.outputs.tag-value}}-${{github.env.GITHUB_SHA}}"
+      tag: "store_backend:snapshot-${{github.event.pull_request.number}}-${{github.env.GITHUB_SHA}}"
