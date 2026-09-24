@@ -13,6 +13,7 @@ jobs:
     uses: ./.github/workflows/backend-golangci-lint.yaml
   container-image:
     uses: ./.github/workflows/backend-image.yaml
+    secrets: inherit
     with:
       tag: "store_backend:snapshot-${{github.event.pull_request.number}}-${{github.env.GITHUB_SHA}}"
   test:

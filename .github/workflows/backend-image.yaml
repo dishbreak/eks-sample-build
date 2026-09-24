@@ -25,4 +25,3 @@ jobs:
           context: ./src/store_backend
           tags: ${{inputs.tag}}
           provenance: false
-          
