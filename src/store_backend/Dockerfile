@@ -1,6 +1,6 @@
 #syntax docker/dockerfile:1
 
-FROM golang:1.27.1 as build
+FROM golang:1.27.1 AS build
 
 WORKDIR /build
 
@@ -12,7 +12,7 @@ COPY ./ ./
 
 RUN ./scripts/build.sh
 
-FROM debian:13-slim as base
+FROM debian:13-slim AS base
 LABEL org.opencontainers.image.source="https://github.com/dishbreak/eks-sample-build"
 LABEL org.opencontainers.image.description="The backend API for the store application hosted in eks-sample-build."
 RUN mkdir /home/app
