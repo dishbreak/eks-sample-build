@@ -1,0 +1,4 @@
+keycloak/
+uploads/
+.devcontainer/
+.vscode/

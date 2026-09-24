@@ -1,0 +1,27 @@
+name: "Backend -- Build Container Image"
+on:
+  workflow_call: 
+    inputs:
+      tag:
+        type: string
+      push:
+        type: boolean
+        default: false
+jobs:
+  build:
+    runs-on: ["ubuntu-latest"]
+    env:
+      IMAGE_NAME: store_backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          username: dishbreak
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          push: ${{inputs.push}}
+          context: ./src/store_backend
+          tags: ${{inputs.tag}}
+          provenance: false

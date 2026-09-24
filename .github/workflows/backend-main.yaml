@@ -1,0 +1,25 @@
+name: Publish Backend Image
+on:
+  push:
+    tags:
+      - store_backend-v*
+jobs:
+  lint:
+    uses: ./.github/workflows/backend-golangci-lint.yaml
+  test:
+    uses: ./.github/workflows/backend-golang-test.yaml
+  parse-version:
+    runs-on: ["ubuntu-latest"]
+    outputs:
+      version: ${{steps.this.outputs.version}}
+    steps:
+      - name: write tag version to output
+        id: this
+        run: echo "version=${GITHUB_REF_NAME#store_backend-}" >> "$GITHUB_OUTPUT"
+  container-image:
+    needs: [lint, test, parse-version]
+    uses: ./.github/workflows/backend-image.yaml
+    with:
+      push: true
+      tag: "dishbreak/store_backend:${{needs.parse-version.outputs.version}}"
+    
