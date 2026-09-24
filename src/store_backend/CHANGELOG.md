@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/dishbreak/eks-sample-build/compare/store_backend-v0.3.1...store_backend-v0.4.0) (2026-09-24)
+
+
+### Features
+
+* **store_backend:** add image build ([56c86e0](https://github.com/dishbreak/eks-sample-build/commit/56c86e0a3f7363b558e29c3005206a3ba42e5b39))
+
 ## [0.3.1](https://github.com/dishbreak/eks-sample-build/compare/store_backend-v0.3.0...store_backend-v0.3.1) (2026-09-17)
 
 
