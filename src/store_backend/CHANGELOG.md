@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/dishbreak/eks-sample-build/compare/store_backend-v0.4.0...store_backend-v0.4.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **store_backend:** unify casing on dockerfile ([7d848e9](https://github.com/dishbreak/eks-sample-build/commit/7d848e90e2b66bd2711d83d779d3cfec1038d6d2))
+* **store_backend:** unify casing on dockerfile ([48e1ecf](https://github.com/dishbreak/eks-sample-build/commit/48e1ecf8627bd6a28ed71351f2e89e57bf962884))
+
 ## [0.4.0](https://github.com/dishbreak/eks-sample-build/compare/store_backend-v0.3.1...store_backend-v0.4.0) (2026-09-24)
 
 
